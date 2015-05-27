@@ -14,7 +14,7 @@ module Dynamoid
 
       # Establish the connection to DynamoDB.
       #
-      # @return [AWS::DynamoDB::Connection] the raw DynamoDB connection
+      # @return [Aws::DynamoDB::Connection] the raw DynamoDB connection
       # Call DynamoDB new, with no parameters. 
       # Make sure the aws.yml file or aws.rb file, refer the link for more details. 
       #https://github.com/amazonwebservices/aws-sdk-for-ruby
@@ -38,12 +38,12 @@ module Dynamoid
       # dynamo_db_endpoint : dynamodb.ap-southeast-1.amazonaws.com)
       # @since 0.2.0
       def connect!
-      @@connection = AWS::DynamoDB.new
+      @@connection = Aws::DynamoDB.new
       end
 
       # Return the established connection.
       #
-      # @return [AWS::DynamoDB::Connection] the raw DynamoDB connection
+      # @return [Aws::DynamoDB::Connection] the raw DynamoDB connection
       #
       # @since 0.2.0
       def connection
@@ -66,7 +66,7 @@ module Dynamoid
         return hash if table_ids.all?{|k, v| v.empty?}
         table_ids.each do |t, ids|
           Array(ids).in_groups_of(100, false) do |group|
-            batch = AWS::DynamoDB::BatchGet.new(:config => @@connection.config)
+            batch = Aws::DynamoDB::BatchGet.new(:config => @@connection.config)
             batch.table(t, :all, Array(group), options) unless group.nil? || group.empty?
             batch.each do |table_name, attributes|
               hash[table_name] << attributes.symbolize_keys!
@@ -91,7 +91,7 @@ module Dynamoid
         return nil if options.all?{|k, v| v.empty?}
         options.each do |t, ids|
           Array(ids).in_groups_of(25, false) do |group|
-            batch = AWS::DynamoDB::BatchWrite.new(:config => @@connection.config)
+            batch = Aws::DynamoDB::BatchWrite.new(:config => @@connection.config)
             batch.delete(t,group)
             batch.process!          
           end
@@ -174,7 +174,7 @@ module Dynamoid
         table = get_table(table_name)
         item = table.items.at(key, range_key)
         item.attributes.update(conditions.merge(:return => :all_new), &block)
-      rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
+      rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException
         raise Dynamoid::Errors::ConditionalCheckFailedException
       end
 
@@ -197,7 +197,7 @@ module Dynamoid
           object.delete_if{|k, v| v.nil? || (v.respond_to?(:empty?) && v.empty?)},
           options || {}
         )
-      rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException => e
+      rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException => e
         raise Dynamoid::Errors::ConditionalCheckFailedException        
       end
 
